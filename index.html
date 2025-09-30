@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>드라마 명대사 퀴즈</title>
+    <style>
+
+
+        @font-face {
+    font-family: 'SebangGothic';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Regular.woff') format('woff');
+    font-weight: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SebangGothic';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2104@1.0/SEBANG_Gothic_Bold.woff') format('woff');
+    font-weight: 700;
+    font-display: swap;
+}
+        body {
+            font-family: 'SebangGothic', sans-serif;
+            background-color: #1a1a1a;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 1000px; 
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-radius:0px;
+            
+        }
+        .gradient-text {
+        font-size: 7rem; 
+        font-weight: bold;
+        
+      
+        background: linear-gradient(180deg, rgba(59, 255, 203, 1) 0%, rgba(255, 255, 255, 1) 51%, rgba(255, 0, 128, 1) 100%);
+        
+       
+        -webkit-background-clip: text;
+        background-clip: text;
+        
+       
+        color: transparent;
+        h1 {
+            margin-bottom: 10px;
+        }
+        p{font-size: 2rem}
+        #question-image, #result-image {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        #question-image { display: none; }
+        #result-image { display: none; } 
+
+        #quote-display {
+            min-height: 120px;
+            padding: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #eee;
+            margin: 20px 0;
+            border: 2px solid #555;
+            border-radius: 10px;
+            background-color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .controls, .answer-section {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .answer-section {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 1em;
+            border: 2px solid #777;
+            border-radius: 5px;
+            background-color: #555;
+            color: #eee;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: #ffcc00;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #222;
+            background-color: #ffcc00;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        button:hover { background-color: #e6b800; }
+        button:disabled { background-color: #888; cursor: not-allowed; }
+
+        #feedback {
+            font-size: 1.2em;
+            margin-top: 10px;
+            min-height: 30px;
+        }
+        #next-button {
+            margin-top: 15px;
+            display: none; 
+        }
+        #result-screen { display: none; font-size: 1.5em; padding: 30px; }
+        #final-score { font-size: 2em; font-weight: bold; margin-bottom: 10px; }
+
+        .center{justify-content: center;}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="gradient-text">드라마 명대사 퀴즈</h1>
+        <p>명대사를 듣고 드라마 제목을 맞춰보세요.<br>갈수록 난이도가 올라갑니다!</p>
+        <img id="start-image" src="sketchbook.jpg" class="center">
+        
+        <img id="question-image" src="" alt="드라마 이미지">
+
+        <div id="quote-display">
+            시작하려면 '재생' 버튼을 누르세요.
+        </div>
+
+        <div class="controls">
+            <button id="play-button">재생</button>
+            <button id="replay-button" disabled>다시 듣기</button> </div>
+
+        <div class="answer-section">
+            <input type="text" id="answer-input" placeholder="정답을 입력하세요" disabled>
+            <button id="submit-button" disabled>제출</button>
+        </div>
+        
+        <div id="feedback"></div>
+        <button id="next-button">다음 문제로</button> <div id="result-screen">
+            <img id="result-image" src="" alt="결과 이미지" class="center"> <p id="result-message"></p>
+            <p id="final-score"></p>
+            <button id="restart-button">다시 시작</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                quote: "아유,찌개가 왜 이렇게 짜.아이.짜긴 뭐가 짜.짜요 어머님 너무 쫄였나봐요.짜다니까 쯧!..물 좀 붓고 데우시지 그러셨어요 짠거 안 좋은데. 엄마,이거 뭐예요?감잔가?.고구마 호박. 고구마 호박이 뭐야?.고구마 호박 모올라아? 호박 맛 나는 노오란 고구마아.고구마 호박이 아니라,호박 고구마예요 어머니.음~↗↗ 맛있다↗!마트, 다녀오셨어요?.아니이 - 영기 엄마가 텃밭에서 고구마 호박을-. 호박 고구마요~ ㅎ.그래-!!! 호굼!... 아..아니..ㅎ 호구마요? ㅎㅎ호↗박↘고↘굼...호ㅡ박ㅡ고ㅡ구ㅡ마ㅡ 호박고구마!!!!!!!!!!!!!!!!!!!. 호↗!!박↗!!!고↗!!!구↗!!!마↗!!! 이제 됐냐! 이 ㅆ (숟가락을 요란스럽게 놓는다). 이 할망구가 왜 이래! 밥상에서! 미쳤어?.(서럽게 운다)",
+                answer:["거침없이 하이킥", "하이킥"],
+                image: "high.jpg",
+                speed: 3000, 
+                audio: "high.mp3" 
+            },
+            {
+                quote: "신나면 더 까매지던 눈동자. 왜이렇게 늦게 와. 보고싶어 죽는줄. 웃을 떄 올라가던 입꼬리. 머리카락 한 올 까지 아름답던. ",
+                answer: ["더글로리","더 글로리"],
+                image: "glory.jpg",
+                speed: 3000, 
+                audio: "glory.mp3"
+            },
+            {
+                quote: "사람은 능력이 모자랄 수 있습니다. 사람은 부주의할 수 있습니다. 사람은 실수를 할 수도 있습니다.(칼로 대신들을 썰어버리는 소리). (음산한 음악)... 사람은. 그럴 수 있습니다... 하지만 내 사람은 그럴 수 없어.",
+                answer: ["선덕여왕"],
+                image: "misil.jpg",
+                speed: 4000, 
+                audio: "misil.mp3"
+            },
+            {
+                quote: " 발레가 계속 하고 싶기는 해?. 그럼! 하기 싫은데 내가 미쳤다고 오디션 보러 다니냐?. 근데 왜 떨어져? 왜 한 번도 안 붙어?. 어지간하면 한 군데라도 붙어야 하는 거 아니야?. 야, 우리나라 발레단이 수백, 수천개는 되는 줄 알아?. 연습은 하니? 죽도록 하는거야?.당연하지!. 근데 니 발은 왜 그렇게 깨끗하고 예뻐?.뭐라구?.발레하는 사람들 발은 발톱이 수십번이나 빠지고. 뼈가 이리저리 튀어나와 사람발로도 짐승발로도 안 보이던데. 니 발은 왜 평생 한 번도 물집 안잡혀 본 발 같아?.너, 연습 안하지? 썩 그렇게 발레가 하고 싶은것도 아니지?. 꿈 같은거 없는거지? 작정도 계획도 없지. 아무 생각없지? 아무 생각 없다고 말 해!. 그럼 니 재미없는 인생, 카드나 긁고 다니면서 푸는 불쌍한 애다. 이해하고 회초리를 부러뜨리던지, 감춰버리든지 도와 줄 테니까!",
+                answer: ["신데렐라 언니","신데렐라언니"],
+                image: "cin.jpg",
+                speed: 3000, 
+                audio: "cin.mp3"
+            },
+            {
+                quote: "넌 궁녀치곤 참으로 못생겼구나. 호박이라 부르겠다. 넌 얼굴이 검으니 숯댕이. 넌 뚱뚱하니 멧돼지. 넌 게으르게 생겼으니 굼벵이. 황후마마, 황실에선 그리부르면 아니되옵니다. 자넨 볼수록 얼굴이 넙데데한게 두꺼비를 닮았구나. 지금부터 떡두꺼비라 부르겠네. 호박아, 호박 네 이년. 네, 마마. 이름이 마음에 드느냐. 마음에 드옵니다. 암 그래야지.",
+                answer: ["기황후"],
+                image: "gi.jpg",
+                speed: 4000,
+                audio: "gi.mp3"
+            },
+            
+        ];
+
+        
+        const resultData = {
+            5: {
+                message: "드라마 전문가 인정합니다. ",
+                image: "na1.jpg"
+            },
+            3: { 
+                message: "이친구.. 제법인데?",
+                image: "na2.jpg"
+            },
+            1: { 
+                message: "아쉽네요! 그래도 몇 개 맞췄어요~",
+                image: "na3.jpg"
+            },
+            0: { 
+                message: "당신. 드라마를 전혀 보질 않는군요.",
+                image: "na4.jpg"}
+        };
+        
+        
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timerId = null;
+        let sentences = [];
+        let sentenceIndex = 0;
+        let audioPlayer = null;
+
+       
+        const playButton = document.getElementById('play-button');
+        const replayButton = document.getElementById('replay-button');
+        const submitButton = document.getElementById('submit-button');
+        const answerInput = document.getElementById('answer-input');
+        const quoteDisplay = document.getElementById('quote-display');
+        const feedback = document.getElementById('feedback');
+        const nextButton = document.getElementById('next-button'); 
+        const resultScreen = document.getElementById('result-screen');
+        const finalScore = document.getElementById('final-score');
+        const resultMessage = document.getElementById('result-message');
+        const resultImage = document.getElementById('result-image'); 
+        const restartButton = document.getElementById('restart-button');
+        const questionImage = document.getElementById('question-image');
+        const startImage = document.getElementById('start-image');
+
+        
+        
+        function showQuestion() {
+            if (currentQuestionIndex < quizData.length) {
+                const currentQuiz = quizData[currentQuestionIndex];
+                
+                sentences = currentQuiz.quote.split('.').filter(s => s.trim() !== '');
+                sentenceIndex = 0;
+                
+                if (audioPlayer) audioPlayer.pause(); 
+
+                questionImage.style.display = 'none';
+                questionImage.src = currentQuiz.image;
+
+                quoteDisplay.textContent = "";
+                feedback.textContent = "";
+                answerInput.value = "";
+                answerInput.disabled = true;
+                submitButton.disabled = true;
+                playButton.disabled = false;
+                replayButton.disabled = true; 
+                nextButton.style.display = 'none'; 
+                resultScreen.style.display = 'none';
+            } else {
+                endGame();
+            }
+        }
+
+        
+        function playQuote() {
+               startImage.style.display = 'none'
+            const currentQuiz = quizData[currentQuestionIndex];
+
+            if (currentQuiz.audio) {
+
+                if (audioPlayer) audioPlayer.pause();
+                audioPlayer = new Audio(currentQuiz.audio);
+                audioPlayer.play();
+            }
+            
+            playButton.disabled = true;
+            replayButton.disabled = true; 
+            quoteDisplay.textContent = "";
+            sentenceIndex = 0;
+
+            answerInput.disabled = false;
+            submitButton.disabled = false;
+            
+            timerId = setInterval(() => {
+                if (sentenceIndex < sentences.length) {
+                    quoteDisplay.textContent += sentences[sentenceIndex] + ". ";
+                    sentenceIndex++;
+                } else {
+                    clearInterval(timerId);
+                    replayButton.disabled = false;
+                    answerInput.focus();
+                }
+            }, quizData[currentQuestionIndex].speed); 
+        }
+
+                
+        function checkAnswer() {
+            if (audioPlayer) audioPlayer.pause(); 
+            clearInterval(timerId); 
+            
+            const userAnswer = answerInput.value.trim();
+            const correctAnswer = quizData[currentQuestionIndex].answer;
+            answerInput.disabled = true;
+            submitButton.disabled = true;
+            playButton.disabled = true;
+            replayButton.disabled = true;
+
+            if (Array.isArray(correctAnswer) ? correctAnswer.includes(userAnswer) : userAnswer === correctAnswer) {
+                score++;
+                feedback.textContent = "정답입니다! 🎉";
+                feedback.style.color = '#32cd32';
+            } else {
+                const answerText = Array.isArray(correctAnswer) ? correctAnswer.join(' 또는 ') : correctAnswer;
+                feedback.textContent = `오답입니다. 정답은 '${answerText}' 입니다. 😢`;
+                feedback.style.color = '#ff4500';
+            }
+            
+            if (quizData[currentQuestionIndex].image) {
+                questionImage.style.display = 'block';
+            }
+
+            nextButton.style.display = 'block'; 
+        }
+        
+        
+        function endGame() {
+            if (audioPlayer) audioPlayer.pause(); 
+            questionImage.style.display = 'none';
+            quoteDisplay.style.display = 'none';
+            document.querySelector('.controls').style.display = 'none';
+            document.querySelector('.answer-section').style.display = 'none';
+            feedback.style.display = 'none';
+            nextButton.style.display = 'none';
+
+
+            const finalScoreMessage = `최종 점수: ${score}점`;
+            finalScore.textContent = finalScoreMessage;
+
+            
+            let resultKey = 0;
+            if (score === 5) resultKey = 5;
+            else if (score >= 3) resultKey = 3;
+            else if (score >= 1) resultKey = 1;
+            
+            resultMessage.textContent = resultData[resultKey].message;
+            resultImage.src = resultData[resultKey].image;
+            resultImage.style.display = 'block';
+            
+            resultScreen.style.display = 'block';
+        }
+        
+        
+        playButton.addEventListener('click', playQuote);
+        replayButton.addEventListener('click', playQuote); 
+        submitButton.addEventListener('click', checkAnswer);
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            showQuestion();
+        });
+        
+        
+        answerInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !submitButton.disabled) {
+                event.preventDefault(); 
+                checkAnswer();
+            }
+        });
+
+        restartButton.addEventListener('click', () => {
+            startImage.style.display = 'block';
+            quoteDisplay.style.display = 'flex';
+            document.querySelector('.controls').style.display = 'flex';
+            document.querySelector('.answer-section').style.display = 'flex';
+            feedback.style.display = 'block';
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            showQuestion();
+        });
+
+        showQuestion();
+    </script>
+</body>
+</html>
